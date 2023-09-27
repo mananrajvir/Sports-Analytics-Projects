@@ -1,6 +1,18 @@
 # Sports Analytics Projects:
 
-## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Exploring%20Pythagorean%20Expectation%20in%20Sports.ipynb> 1. Exploring Pythagorean Expectation in Sports: </a> <br/> 
+## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Baseball%20Swing%20Analysis.ipynb> 1. Baseball Swing Analysis: </a> <br/> 
+* The goal of this analysis is to predict the probability of George Springer swinging at a particular pitch.
+* The probability of the batter swinging at the pitch is determined using features such as characteristics of the pitch (speed, horizontal and vertical break, pitch type), at-bat situation (number of balls and strikes) and previous pitch faced by the batter.
+* There are several applications of this study, such as understanding the areas or characteristics of the kind of pitches the batter has a high probability of swinging at. This could then be used for hitter scouting reports used by pitchers. Alternatively, the batter can also use this analysis to better understand their game and identify areas of improvement.
+
+
+## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Pitching%20Cluster%20Analysis.ipynb> 2. Baseball Pitching Cluster Analysis : </a> <br/> 
+* The goal of this project is to perform cluster analysis using pitching data, to help us identify clusters of similar types of pitchers. 
+* The players have been grouped together based on 2 criteria - player performance and pitching style.
+* This study can be used as a first step in player scouting, where teams can identify unknown/undervalued prospects whose performance might be similar to more established pitchers.
+
+
+## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Exploring%20Pythagorean%20Expectation%20in%20Sports.ipynb> 3. Exploring Pythagorean Expectation in Sports: </a> <br/> 
 Pythagorean Expectation states that 'the win percentage of a team over a season, is proportional to the ratio of: <br/>
 ```
 Square of the points/goals scored by the team divided by the sum of squares of the points/goals scored by the team and its opponent
@@ -9,14 +21,14 @@ This project explores the use of Pythagorean Expectation in several sports inclu
 
 <br/>
 
-## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Sports%20Forecasting%20using%20Pythagorean%20Expectation.ipynb> 2. Sports Forecasting using Pythagorean Expectation: </a> <br/> 
+## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Sports%20Forecasting%20using%20Pythagorean%20Expectation.ipynb> 4. Sports Forecasting using Pythagorean Expectation: </a> <br/> 
 * This project further explores the idea covered in the previous study. 
 * I calculate the Pythagorean Expectation value for teams, during the 1st half of an MLB season and use it to predict the team's win percentage during the second half.
 * The project analyzes how well the Pythagorean Expectation of the 1st half of the season, correlates with the win percentage of the second half.
 
 <br/>
 
-## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Testing%20the%20hot%20hand%20phenomenon%20in%20Basketball.ipynb> 3. Testing the hot hand phenomenon in Basketball: </a> <br/>
+## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Testing%20the%20hot%20hand%20phenomenon%20in%20Basketball.ipynb> 5. Testing the hot hand phenomenon in Basketball: </a> <br/>
 This project explores the hot-hands scenario in basketball: <br/>
 ```
 The idea that basketball players can find themselves with a ‘hot hand’ – a streak in which they seem magically to make shot after shot
@@ -27,7 +39,7 @@ The idea that basketball players can find themselves with a ‘hot hand’ – a
 
 <br/>
 
-## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Moneyball%20I%20-%20Analyzing%20the%20science%20behind%20Moneyball%20.ipynb> 4. Moneyball I - Analyzing the science behind Moneyball: </a> <br/>
+## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Moneyball%20I%20-%20Analyzing%20the%20science%20behind%20Moneyball%20.ipynb> 6. Moneyball I - Analyzing the science behind Moneyball: </a> <br/>
 * This project is based on the story of Moneyball in baseball.
 * This first part of the project focuses on:
   * Analyzing if the player's ability to draw a walk (after 4 balls), had a statistically significant impact on the team's ability to win.
@@ -35,14 +47,14 @@ The idea that basketball players can find themselves with a ‘hot hand’ – a
 
 <br/>
 
-## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Moneyball%20II%20-%20Analyzing%20the%20importance%20given%20to%20On-Base%20Percentage%20by%20MLB%20Teams.ipynb> 5. Moneyball II - Analyzing the importance given to On-Base Percentage by MLB Teams: </a> <br/>
+## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Moneyball%20II%20-%20Analyzing%20the%20importance%20given%20to%20On-Base%20Percentage%20by%20MLB%20Teams.ipynb> 7. Moneyball II - Analyzing the importance given to On-Base Percentage by MLB Teams: </a> <br/>
 * This project further explores the story of Moneyball, and the impact it had on Major League Baseball.
 * The study explores the relation between players' salaries and the on-base percentage (a metric popularized after the Moneyball book was published). The goal is to see whether MLB teams started giving a higher priority & salaries to players who had a higher on-base percentage.
 * The study also analyzes the significance of other metrics like plate appearances, arbitration eligibility and fielding position on the player's salaries using regression.
 
 <br/>
 
-## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Identifying%20Underpaid%20%26%20Overpaid%20Football%20Players%20using%20Regression.ipynb> 6. Identifying Underpaid & Overpaid Football Players using Regression: </a> <br/>
+## <a href = https://github.com/mananrajvir/Sports-Analytics-Projects/blob/main/Identifying%20Underpaid%20%26%20Overpaid%20Football%20Players%20using%20Regression.ipynb> 8. Identifying Underpaid & Overpaid Football Players using Regression: </a> <br/>
 * This project focuses on identifying football players who are overpaid and underpaid based on their skills.
 * The project uses regression to compute a player's expected wages in 2021, using their FIFA 20 statistics, as well as their current wages.
 * For example, the wages for a goalkeeper will be calculated using their FIFA 20 statistics like - Overall Rating, Age, GKDiving, GKKicking, GKReflexes, Current Wage and International_Reputation.
