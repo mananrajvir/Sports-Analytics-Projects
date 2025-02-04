@@ -1,0 +1,284 @@
+---
+title: "Ranking America's Best Sports States"
+author: "Manan Rajvir"
+date: "2025-02-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### **Performance of Sports Teams by State**
+
+<div style="text-align: justify;">
+As a data enthusiast with a deep passion for sports, I’ve always been fascinated by the intersection of analytics and athletic performance. Having followed soccer for the past 15 years, I recently developed a keen interest in U.S. sports. While certain teams—such as the Kansas City Chiefs in the NFL—have dominated their respective leagues in recent years, I wanted to take a broader approach. Rather than focusing on individual franchises, I set out to analyze how states as a whole have performed across the four major professional leagues: the NFL, NBA, MLB, and NHL. 
+
+This curiosity led me to embark on a data-driven project to rank U.S. states based on the average win percentage of their professional teams over the past five years.
+
+The interactive map below allows users to explore various layers, offering insights into overall state performance across the four major leagues, sport-specific success, and the geographic distribution of teams.
+</div>
+```{r finalmap, include=FALSE}
+library(dplyr)
+library(leaflet)
+library(leaflet.extras)
+library(sf)
+library(htmltools)
+library(httr)
+
+#Get the Required Dataframes
+performance_by_state <- read.csv('sports_performance.csv') #Contains the Avg. Win % of Different States
+stadiums = read.csv('stadiums.csv') #Contains the list of American Teams and their Stadium Locations
+
+#Shape file for US States
+states <- read_sf('cb_2018_us_state_500k.shp')
+
+#Create the final dataframe which includes the State Boundaries and Sports Performance
+states_df <- left_join(states, performance_by_state, by = c('NAME' = 'State'))
+states_df <- states_df[!is.na(states_df$StateWinPCT),]
+
+#Create a base map and set the default view to US
+base_map <- states_df %>% leaflet(options = leafletOptions(width = '100%')) %>% setView(lat = 39.8282, lng = -98.5795, 4) %>% addProviderTiles(providers$CartoDB.PositronNoLabels)
+
+#Layer 1: Avg. Win % of All Teams
+labels_all <- paste0("<b>",states_df$NAME, "</b>", "</br>", "Avg. Win %: ",states_df$StateWinPCT)
+paletteNum_all <- colorNumeric('YlGn', domain = c(20,80))
+map_state_win_pct <- base_map %>% 
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>% 
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$StateWinPCT), label = lapply(labels_all,HTML),group = "StateWinPct") %>% 
+  addLegend(pal = paletteNum_all, values = c(20,80), opacity = 0.7, position = "bottomleft",title = "Avg. Win % of Teams (Last 5 years)")
+
+#Layer 2: Avg. Win % of All NHL Teams
+labels_nhl <- paste0("<b>", states_df$NAME ,"</b>", "<br>",
+                     "<b>NHL Win Pct: </b>", round(states_df$NHL_WinPCT, 2), "%", "<br>",
+                     "<b>NHL Conference Titles: </b>", states_df$NHL_ConferenceTitles)
+map_state_win_pct_nhl <- base_map %>% 
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>% 
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$NHL_WinPCT), label = lapply(labels_nhl,HTML),group = "NHLWinPct")
+
+#Layer 3: Avg. Win % of All NBA Teams
+labels_nba <- paste0("<b>", states_df$NAME ,"</b>", "<br>",
+                     "<b>NBA Win Pct: </b>", round(states_df$NBA_WinPCT, 2), "%", "<br>",
+                     "<b>NBA Conference Titles: </b>", states_df$NBA_ConferenceTitles)
+map_state_win_pct_nba <- base_map %>% 
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>% 
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$NBA_WinPCT), label = lapply(labels_nba,HTML),group = "NBAWinPct")
+
+#Layer 4: Avg. Win % of All MLB Teams
+labels_mlb <- paste0("<b>", states_df$NAME ,"</b>", "<br>",
+                     "<b>MLB Win Pct: </b>", round(states_df$MLB_WinPCT, 2), "%", "<br>",
+                     "<b>MLB Conference Titles: </b>", states_df$MLB_ConferenceTitles)
+map_state_win_pct_mlb <- base_map %>% 
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>% 
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$MLB_WinPCT), label = lapply(labels_mlb,HTML),group = "MLBWinPct")
+
+#Layer 5: Avg. Win % of All NFL Teams
+labels_nfl <- paste0("<b>", states_df$NAME ,"</b>", "<br>",
+                     "<b>NFL Win Pct: </b>", round(states_df$NFL_WinPCT, 2), "%", "<br>",
+                     "<b>NFL Conference Titles: </b>", states_df$NFL_ConferenceTitles)
+map_state_win_pct_nfl <- base_map %>% 
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>% 
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$NFL_WinPCT), label = lapply(labels_nfl,HTML),group = "NFLWinPct")
+
+#Layer 6: Conference Titles of All States
+labels_titles <- paste0("<b>", states_df$NAME ,"</b>", "<br>",
+                        "<b>Total Titles: </b>", states_df$TotalConferenceTitles, "<br>",
+                        "<b>NHL Conference Titles: </b>", states_df$NHL_ConferenceTitles, "<br>",
+                        "<b>NBA Conference Titles: </b>", states_df$NBA_ConferenceTitles, "<br>",
+                        "<b>MLB Conference Titles: </b>", states_df$MLB_ConferenceTitles, "<br>",
+                        "<b>NFL Conference Titles: </b>", states_df$NFL_ConferenceTitles)
+paletteNum_titles <- colorNumeric('Blues', domain = c(0.0,10.0))
+map_state_titles <- base_map %>% 
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>% 
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_titles(states_df$TotalConferenceTitles), label = lapply(labels_titles,HTML),group = "Titles")
+
+#Add Team Stadiums
+nhl_teams <- stadiums %>% filter(League == 'NHL')
+nfl_teams <- stadiums %>% filter(League == 'NFL')
+nba_teams <- stadiums %>% filter(League == 'NBA')
+mlb_teams <- stadiums %>% filter(League == 'MLB')
+pal <- colorFactor(palette = c("black", "red", "green", "blue"), levels = c('NHL','NFL','NBA','MLB'))
+map_stadiums <- base_map %>% 
+  addCircleMarkers(data = nhl_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NHL",radius = 2) %>% 
+  addCircleMarkers(data = nfl_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NFL",radius = 2) %>% 
+  addCircleMarkers(data = nba_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NBA",radius = 2) %>%
+  addCircleMarkers(data = mlb_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "MLB",radius = 2)
+
+#Combine all the layers
+final_map <- base_map %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$StateWinPCT), label = lapply(labels_all,HTML),highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "Avg. State Win Pct") %>% 
+  addLegend(pal = paletteNum_all, values = c(20,80), opacity = 0.7, position = "bottomleft",title = "Avg. Win % of Teams (Last 5 years)") %>% 
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_titles(states_df$TotalConferenceTitles), label = lapply(labels_titles,HTML), highlightOptions = highlightOptions(color = "yellow", weight = 3, bringToFront = TRUE), group = "Conference Titles") %>%
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$NHL_WinPCT), label = lapply(labels_nhl,HTML), highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "NHL Win Pct") %>%
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$NBA_WinPCT), label = lapply(labels_nba,HTML), highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "NBA Win Pct") %>%
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$MLB_WinPCT), label = lapply(labels_mlb,HTML), highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "MLB Win Pct") %>%
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$NFL_WinPCT), label = lapply(labels_nfl,HTML), highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "NFL Win Pct") %>%
+  addCircleMarkers(data = nhl_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NHL Stadiums",radius = 2) %>% 
+  addCircleMarkers(data = nfl_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NFL Stadiums",radius = 2) %>% 
+  addCircleMarkers(data = nba_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NBA Stadiums",radius = 2) %>%
+  addCircleMarkers(data = mlb_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "MLB Stadiums",radius = 2) %>% 
+  addLayersControl(overlayGroups = c("Avg. State Win Pct", "Conference Titles", "NHL Win Pct", "NBA Win Pct", "MLB Win Pct", "NFL Win Pct", "NHL Stadiums","NFL Stadiums","NBA Stadiums","MLB Stadiums")) %>%
+  hideGroup("Conference Titles") %>%
+  hideGroup("NHL Win Pct") %>%
+  hideGroup("NBA Win Pct") %>%
+  hideGroup("MLB Win Pct") %>%
+  hideGroup("NFL Win Pct") %>%
+  hideGroup("NHL Stadiums") %>%
+  hideGroup("NFL Stadiums") %>%
+  hideGroup("NBA Stadiums") %>%
+  hideGroup("MLB Stadiums")
+
+#Add extra features
+#final_map <- final_map %>% addSearchFeatures(targetGroups = c("NHLStadiums","NFLStadiums","NBAStadiums","MLBStadiums"), options = searchFeaturesOptions(zoom = 10)) %>% addResetMapButton()
+```
+
+```{r finalmap_output, echo=FALSE, class.source = "rplot", fig.width=10, fig.height=6}
+final_map
+```
+
+**You can use the layers button on the top right corner to visualize the following over the last 5 years**:
+
+1. Average Win % of Teams within a state across NHL, NBA, MLB and NFL
+2. Total Number of Conference Titles won by teams within the state
+3. Average Individual League Win % of Teams (ex: Minnesota's NBA Win %)
+4. Teams located within each State
+
+
+### **Plotting Guide:**
+<div style="text-align: justify;">
+This section provides an in-depth look at the process behind creating the final map displayed above. For a detailed explanation of how the raw data was gathered, processed, and refined for this project, you can find more information [here](https://google.com).
+</div>
+
+```{r datasource}
+performance_by_state <- read.csv('sports_performance.csv') #Contains the Sports Performance of States over the last 5 years
+stadiums = read.csv('stadiums.csv') #Contains the list of American Teams and their Stadium Locations
+head(performance_by_state)
+
+```
+
+</br>
+
+##### **Step I: Creating the Base Map**
+```{r basemap}
+#Shape file for US States
+states <- read_sf('cb_2018_us_state_500k.shp')
+
+#Create the final dataframe which includes the State Boundaries and Sports Performance
+states_df <- left_join(states, performance_by_state, by = c('NAME' = 'State'))
+states_df <- states_df[!is.na(states_df$StateWinPCT),]
+
+#Create a base map and set the default view to US
+base_map <- states_df %>% leaflet() %>% setView(lat = 39.8282, lng = -98.5795, 4) %>% addProviderTiles(providers$CartoDB.PositronNoLabels)
+base_map
+```
+
+The basemap can be created using the `leaflet()` function, with the view set to focus on the United States. For this project, [Census Bureau's shapefile](https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html) has been used to identify and mark the state boundaries for United States.
+
+</br>
+
+##### **Step II: Creating the Base Layer**
+
+The base layer of the map highlights each state, representing the average win percentage of all teams across the four major leagues, over the last 5 years.
+```{r baselayer}
+#Create labels that will be displayed on hover
+labels_all <- paste0("<b>",states_df$NAME, "</b>", "</br>", "Avg. Win %: ",states_df$StateWinPCT)
+
+#Create a color-palette for values ranging from 20% - 80% (range of Win %)
+paletteNum_all <- colorNumeric('YlGn', domain = c(20,80))
+
+#Use the addPolygons() function to fill the state using the win % of teams
+map_state_win_pct <- base_map %>% 
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>% 
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$StateWinPCT), label = lapply(labels_all,HTML),group = "StateWinPct") %>% 
+  addLegend(pal = paletteNum_all, values = c(20,80), opacity = 0.7, position = "bottomleft",title = "Avg. Win % of Teams (Last 5 years)")
+
+map_state_win_pct
+```
+
+The `addPolygons()` function has been used to define each state on the map and highlight the average win % of states across Big 4 Leagues.
+
+</br>
+
+
+##### **Step III: Adding another layer**
+Additional layers showcasing win percentages for individual leagues are created using the `addPolygons()` function, applying the same methodology for each league.
+```{r nhl}
+#Create labels that will be displayed on hover
+labels_nhl <- paste0("<b>", states_df$NAME ,"</b>", "<br>",
+                     "<b>NHL Win Pct: </b>", round(states_df$NHL_WinPCT, 2), "%", "<br>",
+                     "<b>NHL Conference Titles: </b>", states_df$NHL_ConferenceTitles)
+
+#Use the addPolygons() function to fill the state using the NHL win % of teams
+map_state_win_pct_nhl <- base_map %>% 
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>% 
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$NHL_WinPCT), label = lapply(labels_nhl,HTML),group = "NHLWinPct")
+
+map_state_win_pct_nhl
+```
+The map layers for individual leagues can re-use the existing color-palette and legend created for the base layer.
+
+</br>
+
+##### **Step IV: Mapping the Team Locations**
+
+The locations of the individual teams can be added as point markers based on the longitude and latitude of the team's stadium. The `stadiums` data frame contains the name and location of all team stadiums, along with the respective league names. 
+```{r stadiums}
+#Add Team Stadiums
+nhl_teams <- stadiums %>% filter(League == 'NHL')
+nfl_teams <- stadiums %>% filter(League == 'NFL')
+nba_teams <- stadiums %>% filter(League == 'NBA')
+mlb_teams <- stadiums %>% filter(League == 'MLB')
+
+#Create a color-palette for each league
+pal <- colorFactor(palette = c("black", "red", "green", "blue"), levels = c('NHL','NFL','NBA','MLB'))
+
+#Add the location of the stadiums on the base map as markers
+map_stadiums <- base_map %>% 
+  addCircleMarkers(data = nhl_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NHL",radius = 2) %>% 
+  addCircleMarkers(data = nfl_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NFL",radius = 2) %>% 
+  addCircleMarkers(data = nba_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NBA",radius = 2) %>%
+  addCircleMarkers(data = mlb_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "MLB",radius = 2)
+
+map_stadiums
+```
+The locations of stadiums can be plotted using the `addCircleMarkers()` or `addMarkers()` functions. For this map, we have divided the teams into 4 groups based on the league, and each of these leagues is represented with a different colour.
+
+</br>
+
+##### **Step V: Combining All the Layers**
+
+The addPolygon() step above can be repeated to create layers for each individual league. The final map is then created by combining the layers created in the previous steps into a single map object, and using the `addLayersControl()` function to allow the user to navigate through different layers.
+```{r combineLayers}
+#Combine all the layers
+final_map <- base_map %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$StateWinPCT), label = lapply(labels_all,HTML),highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "StateWinPct") %>% 
+  addLegend(pal = paletteNum_all, values = c(20,80), opacity = 0.7, position = "bottomleft",title = "Avg. Win % of Teams (Last 5 years)") %>% 
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_titles(states_df$TotalConferenceTitles), label = lapply(labels_titles,HTML), highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "Titles") %>%
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$NHL_WinPCT), label = lapply(labels_nhl,HTML), highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "NHLWinPct") %>%
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$NBA_WinPCT), label = lapply(labels_nba,HTML), highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "NBAWinPct") %>%
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$MLB_WinPCT), label = lapply(labels_mlb,HTML), highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "MLBWinPct") %>%
+  addPolygons(data = states_df, weight = 1, smoothFactor = 0.5, color = 'white', fillOpacity = 0.8, fillColor = ~paletteNum_all(states_df$NFL_WinPCT), label = lapply(labels_nfl,HTML), highlightOptions = highlightOptions(color = "yellow", weight = 3), group = "NFLWinPct") %>%
+  addCircleMarkers(data = nhl_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NHLStadiums",radius = 2) %>% 
+  addCircleMarkers(data = nfl_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NFLStadiums",radius = 2) %>% 
+  addCircleMarkers(data = nba_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "NBAStadiums",radius = 2) %>%
+  addCircleMarkers(data = mlb_teams, ~Long, ~Lat, color = ~pal(League), label = ~htmlEscape(Team), group = "MLBStadiums",radius = 2) %>% 
+  addLayersControl(overlayGroups = c("StateWinPct","Titles","NHLWinPct","NBAWinPct","MLBWinPct","NFLWinPct","NHLStadiums","NFLStadiums","NBAStadiums","MLBStadiums")) %>%
+  hideGroup("Titles") %>%
+  hideGroup("NHLWinPct") %>%
+  hideGroup("NBAWinPct") %>%
+  hideGroup("MLBWinPct") %>%
+  hideGroup("NFLWinPct") %>%
+  hideGroup("NHLStadiums") %>%
+  hideGroup("NFLStadiums") %>%
+  hideGroup("NBAStadiums") %>%
+  hideGroup("MLBStadiums")
+```
+
+The `hideGroup()` function allows you to set the Win % Layer are the default layer for the map, by hiding the other layers until they are selected.
+
+
+
+
+
